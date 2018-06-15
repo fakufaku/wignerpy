@@ -122,6 +122,24 @@ PyObject *wigner6j_vec_wrap(PyObject *self, PyObject *args){//NOTE: do not take 
     return rv;
 }
 
+struct module_state {
+    PyObject *error;
+};
+
+#if PY_MAJOR_VERSION >= 3
+#define GETSTATE(m) ((struct module_state*)PyModule_GetState(m))
+#else
+#define GETSTATE(m) (&_state)
+static struct module_state _state;
+#endif
+
+static PyObject *
+error_out(PyObject *m) {
+    struct module_state *st = GETSTATE(m);
+    PyErr_SetString(st->error, "something bad happened");
+    return NULL;
+}
+
 // Module methods
 static PyMethodDef wignerpy_methods[] = {
     {"test", (PyCFunction) wigner3j_test, METH_NOARGS,
@@ -137,10 +155,12 @@ static PyMethodDef wignerpy_methods[] = {
     //{"redcal", (PyCFunction)redcal_wrap, METH_VARARGS | METH_KEYWORDS,
         //"redcal(data,calpar,info,additivein,uselogcal=1,removedegen=0,maxiter=20,stepsize=.3,conv=.001)\nRun redundant calibration on data (3D array of complex floats)."},
 
+    {"error_out", (PyCFunction)error_out, METH_NOARGS, NULL},
     {NULL, NULL}  /* Sentinel */
 };
 
-#ifndef PyMODINIT_FUNC  /* declarations for DLL import/export */
+/*
+#ifndef PyMODINIT_FUNC  // declarations for DLL import/export
 #define PyMODINIT_FUNC void
 #endif
 
@@ -150,4 +170,65 @@ PyMODINIT_FUNC init_wignerpy(void) {
     "Wrapper for wignerSymbol C++ code (C++ authored by Joey Dumont).");
 
     import_array();
+}
+*/
+
+#if PY_MAJOR_VERSION >= 3
+
+static int wignerpy_traverse(PyObject *m, visitproc visit, void *arg) {
+    Py_VISIT(GETSTATE(m)->error);
+    return 0;
+}
+
+static int wignerpy_clear(PyObject *m) {
+    Py_CLEAR(GETSTATE(m)->error);
+    return 0;
+}
+
+
+static struct PyModuleDef moduledef = {
+        PyModuleDef_HEAD_INIT,
+        "_wignerpy",
+        NULL,
+        sizeof(struct module_state),
+        wignerpy_methods,
+        NULL,
+        wignerpy_traverse,
+        wignerpy_clear,
+        NULL
+};
+
+#define INITERROR return NULL
+
+PyMODINIT_FUNC
+PyInit__wignerpy(void)
+
+#else
+#define INITERROR return
+
+void
+initwignerpy(void)
+#endif
+{
+#if PY_MAJOR_VERSION >= 3
+    PyObject *module = PyModule_Create(&moduledef);
+#else
+    PyObject *module = Py_InitModule("_wignerpy", wignerpy_methods);
+#endif
+
+    import_array();
+
+    if (module == NULL)
+        INITERROR;
+    struct module_state *st = GETSTATE(module);
+
+    st->error = PyErr_NewException("wignerpy.Error", NULL, NULL);
+    if (st->error == NULL) {
+        Py_DECREF(module);
+        INITERROR;
+    }
+
+#if PY_MAJOR_VERSION >= 3
+    return module;
+#endif
 }

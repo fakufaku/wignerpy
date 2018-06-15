@@ -1,6 +1,6 @@
 import unittest, wignerpy._wignerpy as wp
 import numpy as np
-import commands, os, time, math
+import os, time, math
 
 class TestMethods(unittest.TestCase):
     #def setUp(self):
@@ -11,7 +11,7 @@ class TestMethods(unittest.TestCase):
         pas = True
         for item in correctanswer:
             if abs((item[6] - wp.wigner3j(item[0],item[1],item[2],item[3],item[4],item[5]))/item[6]) > 1e-10:
-                print item[:6].astype('int32'), item[6], wp.wigner3j(item[0],item[1],item[2],item[3],item[4],item[5])
+                print(item[:6].astype('int32'), item[6], wp.wigner3j(item[0],item[1],item[2],item[3],item[4],item[5]))
                 pas = False
         self.assertTrue(pas)
 
@@ -21,7 +21,7 @@ class TestMethods(unittest.TestCase):
         pas = True
         for item in correctanswer:
             if abs((item[6] - wp.wigner3j(item[0],item[1],item[2],item[3],item[4],item[5]))/item[6]) > 1e-10:
-                print item[:6].astype('int32'), item[6], wp.wigner3j(item[0],item[1],item[2],item[3],item[4],item[5])
+                print(item[:6].astype('int32'), item[6], wp.wigner3j(item[0],item[1],item[2],item[3],item[4],item[5]))
                 pas = False
         self.assertTrue(pas)
     def test_bug1(self):

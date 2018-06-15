@@ -19,13 +19,13 @@ setup(name = 'wignerpy',
     author = 'Joey Dumont, Jeff Zheng',
     author_email = '',
     url = '',
-    package_dir = {'wignerpy':'src'},
+    package_dir = {'wignerpy':'wignerpy'},
     packages = ['wignerpy'],
     ext_modules = [
         Extension('wignerpy._wignerpy',
-            globdir('src/_wignerpy/',
+            globdir('wignerpy/_wignerpy/',
                 ['*.cpp', '*.c', '*.cc']),
-            include_dirs = ['src/_wignerpy/include', numpy.get_include()],
+            include_dirs = ['wignerpy/_wignerpy/include', numpy.get_include()],
             extra_compile_args=['-Wno-write-strings', '-O3']
         )
     ],
